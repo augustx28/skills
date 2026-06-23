@@ -49,7 +49,7 @@ cases. State your confidence and what would change the conclusion.
 
 ## The simplification pass (apply when the task is to build/design/optimize)
 
-After Step 4, run Musk's five-step engineering algorithm, in order:
+After Step 4, run Five-step engineering algorithm, in order:
 1. **Question the requirement.** Make requirements less dumb. Every requirement
    carries the name of a person, not a department — requirements are wrong by default.
 2. **Delete.** Remove the part, step, or feature entirely. If you aren't adding
