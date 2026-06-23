@@ -38,49 +38,69 @@ flag it as "needs real data" rather than inventing it.
 - Trigger: an unearned, meaningful, personalized gift creates an obligation to return it.
 - Tactics: lead magnets, free tools/trials, genuinely useful free content, surprise
   bonuses, a stacked bonus offer, a concession (ask big, retreat to the real ask —
-  "reject-then-retreat"). The gift should feel *significant, unexpected, and tailored*.
+  "reject-then-retreat" / door-in-the-face), a "that's-not-all" bonus added before they answer.
+  The gift should feel *significant, unexpected, and tailored*. Pair with the **contrast
+  principle**: present the expensive/big thing first so the real ask looks small by comparison.
+- From the research: the Hare Krishna pressed a *flower* on passersby before asking for a
+  donation — an unwanted gift still triggered repayment. An unexpected gift before the ask beats a bigger discount at the ask.
 - Fires hardest: top of funnel, before any ask; bonus stacks at the offer.
 
 **2. Commitment & Consistency — a small yes pulls the big yes.**
-- Trigger: people act consistently with prior commitments, especially active, public, written, voluntary ones.
+- Trigger: people act consistently with prior commitments, especially active, public, written, voluntary ones freely chosen.
 - Tactics: micro-commitments, a low-friction first step, quizzes/configurators, a
   "yes ladder" of easy agreements, opt-ins before the buy, getting the prospect to
-  state their own goal in their words. Start small, escalate.
+  state their own goal in their words, having them write/declare it. Start small, escalate.
+  Avoid the **lowball** (luring a yes then changing terms) — it converts once and burns trust.
+- From the research: homeowners who first accepted a tiny "be a safe driver" window sticker
+  were later **4x** more likely to allow a huge "Drive Carefully" sign on their lawn (76% vs 17%).
+  A small initial commitment changes self-image, and the big yes follows.
 - Fires hardest: multi-step forms, onboarding, discovery in a sales call.
 
 **3. Social Proof — people do what similar people do.**
-- Trigger: under uncertainty, we copy the behavior of others — strongest when those others are *like us* and *many*.
+- Trigger: under uncertainty, we copy the behavior of others — strongest when those others are *like us* (similar) and *many*.
 - Tactics: testimonials (named, specific, with results), star ratings and review
   counts, "X customers / 12,000 sold", case studies, "most popular" badges, user
-  counts/live activity, logos of customers, before/afters, UGC.
+  counts/live activity, logos of customers, before/afters, UGC. Match the proof source to the reader.
+- From the research: proof works hardest exactly where the reader is *uncertain* and the
+  examples are *people like them* — a peer's result outpulls a celebrity's. Uncertainty + similarity = maximum pull.
 - Fires hardest: next to claims, next to price, in the hero, right before the CTA.
 
 **4. Liking — we say yes to those we like.**
-- Trigger: similarity, genuine compliments, cooperation toward a shared goal, familiarity, and warmth.
+- Trigger: similarity, genuine compliments, cooperation toward a shared goal, familiarity, and warmth (plus the attractiveness halo).
 - Tactics: a relatable origin story, a real human/founder face and voice, "I was where
-  you are", points of similarity with the reader, a shared enemy, plain warm language
-  instead of corporate distance.
+  you are", explicit points of similarity with the reader, sincere praise, a shared enemy,
+  plain warm language instead of corporate distance.
+- From the research: a top car salesman mailed every customer a card that simply read
+  "I like you," every month — and led the field. Stated, sincere liking and similarity convert.
 - Fires hardest: intro/story sections, About, the opening of an email or call.
 
 **5. Authority — we defer to credible experts.**
-- Trigger: credentials, expertise, and trappings of authority lend believability.
+- Trigger: credentials, expertise, and the *symbols* of authority (titles, attire, trappings) lend believability — often more than the substance.
 - Tactics: credentials and titles, "as seen in"/media logos, certifications, hard
   data and citations, expert endorsements, years/scale ("10 years, 4,000 clients"),
-  a candid admission of a small weakness to make the strengths credible.
+  a candid admission of a small flaw before the strengths (it makes the strengths credible).
+- From the research: in Milgram's experiments, ordinary people obeyed a lab-coated
+  "authority" to a shocking degree — a *symbol* of authority bends behavior. Establish credible expertise before the claim, not after.
 - Fires hardest: hero, byline, and immediately next to your biggest claim.
 
 **6. Scarcity — less available means more wanted.**
-- Trigger: we value what's rare or slipping away; loss looms larger than equivalent gain.
-- Tactics: limited quantity, real deadlines, expiring bonuses, exclusivity/limited
-  access, "doors close", waitlists, loss-framed copy ("don't lose your spot" beats
-  "get a spot"). Must be *true* — fake countdowns are the fastest trust-killer here.
+- Trigger: we value what's rare or slipping away; loss looms larger than equivalent gain (reactance — we want what's being taken off the table).
+- Tactics: limited quantity ("only 7 left"), real deadlines, expiring bonuses,
+  exclusivity/limited access, "doors close", waitlists, loss-framed copy ("don't lose your
+  spot" beats "get a spot"). Newly-scarce and competed-for items pull hardest. Must be *true* —
+  fake countdowns are the fastest trust-killer here.
+- From the research: people value a thing more the moment it becomes scarce — and most of all
+  when it just *became* scarce and others are after it too. Frame the offer as a loss avoided, not a gain.
 - Fires hardest: the offer block, the CTA, checkout.
 
 **7. Unity — shared identity, the "we".**
 - Trigger: we say yes to those we consider *one of us* — family, tribe, place, identity. Stronger and deeper than mere liking.
 - Tactics: in-group language ("for people like us", "founders who…", a named tribe),
-  shared identity and values, co-creation ("you helped build this"), belonging to a
-  community/movement, "we" not "you and us".
+  shared identity and values, co-creation and asking for advice (it pulls people *inside*),
+  belonging to a community/movement, "we" not "you and us".
+- From the research: Unity is Cialdini's 7th principle (added in the 2021 expanded edition) —
+  it's not just *liking* someone similar, it's sharing a *category of self* ("one of us"). Asking
+  for advice, not opinion, makes the reader a co-creator and an insider.
 - Fires hardest: brand framing, community, the overarching identity of the whole asset.
 
 ## The procedure (run in this order)
