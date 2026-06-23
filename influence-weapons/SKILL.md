@@ -1,14 +1,21 @@
 ---
 name: influence-weapons
-description: Audit and rewrite any persuasion asset — landing page, email, VSL script, or sales script — by loading Cialdini's 7 weapons of influence (Reciprocity, Commitment/Consistency, Social Proof, Liking, Authority, Scarcity, Unity) into the right sections in the right order. Use whenever the user wants to increase conversion, "make this more persuasive", diagnose why copy isn't converting, add proof/urgency/credibility, or rewrite a page/email/VSL/script for leverage. Outputs a weapon map (what's present, missing, misplaced) plus an annotated rewrite with each inserted line tagged to its weapon — and an ethics check so every claim is true.
+description: Audit and rewrite any persuasion asset by loading Cialdini's 7 weapons of influence (Reciprocity, Commitment/Consistency, Social Proof, Liking, Authority, Scarcity, Unity) into the right places in the right order. Works on anything meant to move someone to act — landing pages, emails, VSL and sales scripts, ads, social posts, cold DMs/outreach, webinars, pitch decks, proposals, pricing/checkout/onboarding flows, push/SMS, fundraising and donation asks, job posts, app-store listings, negotiation talking points, and more. Use whenever the user wants to increase conversion, "make this more persuasive", diagnose why something isn't converting, add proof/urgency/credibility, or rewrite any message for leverage. Outputs a weapon map (what's present, missing, misplaced) plus an annotated rewrite with each inserted line tagged to its weapon — and an ethics check so every claim is true.
 ---
 
 # Influence Weapons — Cialdini's 7 for Conversion
 
 ## What this is
 
-A method for loading a persuasion asset with the 7 weapons of influence, placed
-where each one fires hardest. It works in two modes:
+A method for loading any persuasion asset with the 7 weapons of influence, placed
+where each one fires hardest. "Asset" means anything meant to move someone to act —
+a landing page, email, VSL or sales script, ad, social/LinkedIn post, cold DM or
+outreach message, webinar, pitch deck, investor or client proposal, pricing page,
+checkout or onboarding flow, push/SMS notification, fundraising or donation appeal,
+job posting, app-store listing, negotiation talking points, a product description,
+even a single CTA button. If it's trying to get a yes, this skill applies.
+
+It works in two modes:
 
 - **Audit** — map the existing copy to the 7 weapons, find gaps and misplacements.
 - **Rewrite** — insert or rewrite copy so each section carries the right weapon.
@@ -79,9 +86,11 @@ flag it as "needs real data" rather than inventing it.
 ## The procedure (run in this order)
 
 **Step 1 — Identify asset, goal, audience.**
-Name the asset type (landing page / email / VSL / sales script), the single
-conversion goal (opt-in, book a call, buy, upsell), and who the reader is. The
-audience determines *which* social proof and *which* identity (Unity) will land.
+Name the asset type (anything from a landing page or VSL to an ad, DM, deck,
+checkout flow, or a single button), the single conversion goal (opt-in, reply,
+book a call, buy, upsell, donate, sign), and who the reader is. If the format isn't
+a familiar one, map it to the five beats in the Universal placement logic below.
+The audience determines *which* social proof and *which* identity (Unity) will land.
 
 **Step 2 — Audit what's already there.**
 Read the copy and tag every existing line to one of the 7 weapons (or "none".)
@@ -108,7 +117,27 @@ Never fabricate proof, credentials, or scarcity.
 
 **Step 7 — Output** in the format below.
 
-## Placement guide by asset type
+## Placement guide
+
+### Universal placement logic (works for any asset, even ones not listed below)
+
+Every persuasion asset, whatever its format, moves the reader through the same arc.
+Map the asset to these five beats and assign each beat its weapon — this is how you
+handle anything not in the worked examples (an ad, a DM, a pitch deck, a checkout
+button, a donation page, a negotiation):
+
+1. **Attention / open** → **Liking** (relatable, warm, similar) + curiosity.
+2. **Identity / relevance** → **Unity** ("for people like you who…") — why this is *for them*.
+3. **Value / believability** → **Reciprocity** (give something real first) + **Authority** (why trust you).
+4. **Proof** → **Social Proof** (others like them already did this and won), placed next to the claim it proves.
+5. **The ask / close** → **Commitment** (smallest easy yes) + **Scarcity** (real reason to act now).
+
+Shorter assets just compress the arc: a cold DM might fold Attention+Identity into
+one line; a CTA button carries only the close (Commitment + Scarcity). Longer assets
+repeat the proof→ask beats per section. When in doubt, find the single moment the
+reader decides — put proof right before it and the ask right after it.
+
+### Worked examples by asset type
 
 **Landing page (top → bottom):**
 - Hero / headline → **Authority** + **Social Proof** (credibility instantly: media logos, rating, count).
@@ -138,6 +167,26 @@ Never fabricate proof, credentials, or scarcity.
 - Pitch → **Authority** (proof, data) + **Social Proof** (clients like them).
 - Objection handling → **Reciprocity** (concession / reject-then-retreat) + **Social Proof**.
 - Close → **Scarcity** (real limited offer) + **Commitment** (confirm their stated goal → the obvious next step).
+
+**Ad / social post (compressed):**
+- Hook line → **Liking** + curiosity (stop the scroll, sound like one of them).
+- Middle → **Social Proof** or **Authority** — one proof beat, the strongest you have.
+- End / CTA → **Commitment** (one tiny action) + **Scarcity** when it's genuinely time-bound.
+
+**Cold DM / outreach email:**
+- First line → **Unity** / **Liking** (shared world, a specific real detail about *them*, not "Hi there").
+- Middle → **Reciprocity** (lead with a free, useful, tailored gift — an insight, audit, intro) before any ask.
+- Ask → **Commitment** (the smallest possible yes: a 10-min call, a reply, one link).
+
+**Pitch deck / proposal:**
+- Problem/opportunity → **Unity** (we see the world the way you do) + **Authority** (we know this space).
+- Solution + traction → **Social Proof** (logos, users, revenue) + **Authority** (data, team credentials).
+- The ask (raise / sign) → **Scarcity** (round closing, allocation, timeline) + **Commitment** (clear next step).
+
+**Pricing / checkout / onboarding:**
+- Plan selection → **Social Proof** ("most popular" on the target tier) + **Authority** (guarantee).
+- Add-ons / upsell → **Reciprocity** (bonus included) framed as a gift, not a charge.
+- Checkout → **Scarcity** (real expiring discount/quantity) + **Commitment** (resume the progress they've made — sunk-yes).
 
 ## Output format
 
