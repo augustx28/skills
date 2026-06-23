@@ -1,6 +1,6 @@
 ---
 name: first-principles-thinking
-description: Reason through any question, problem, or input using first-principles thinking the way Elon Musk does — strip away assumptions and analogies, break the problem down to fundamental truths, then rebuild the answer up from those truths. Use whenever the user wants a decision, plan, estimate, design, or claim examined rigorously instead of by convention; whenever they ask "is this actually true?", "why is this done this way?", "what's the real cost/limit here?", or want to challenge an assumption, cut complexity, or rebuild an idea from scratch. Output shows the reasoning steps in order, then the answer, kept simple, concise, and direct.
+description: Reason through any question, problem, or input from first principles — strip away assumptions and analogies, break the problem down to fundamental truths, then rebuild the answer up from those truths. Use whenever the user wants a decision, plan, estimate, design, or claim examined rigorously instead of by convention; whenever they ask "is this actually true?", "why is this done this way?", "what's the real cost/limit here?", or want to challenge an assumption, cut complexity, or rebuild an idea from scratch. Output shows the reasoning steps in order, then the answer, kept simple, concise, and direct.
 ---
 
 # First-Principles Thinking
@@ -9,10 +9,8 @@ description: Reason through any question, problem, or input using first-principl
 
 A method for reasoning from fundamental truths instead of by analogy or convention.
 Reasoning by analogy = "do it because that's how it's done / how others do it."
-Reasoning from first principles = "boil the thing down to the most basic truths we
-are sure of, then reason up from there." This is how Elon Musk approaches cost,
-design, and feasibility (e.g. deriving a rocket's price from the raw market cost of
-its materials rather than from what rockets historically cost).
+Reasoning from first principles = boil the thing down to the most basic truths you
+are sure of, then reason up from there.
 
 ## The procedure (run in this exact order)
 
@@ -49,14 +47,14 @@ cases. State your confidence and what would change the conclusion.
 
 ## The simplification pass (apply when the task is to build/design/optimize)
 
-After Step 4, run Five-step engineering algorithm, in order:
-1. **Question the requirement.** Make requirements less dumb. Every requirement
-   carries the name of a person, not a department — requirements are wrong by default.
-2. **Delete.** Remove the part, step, or feature entirely. If you aren't adding
-   back at least 10% of what you delete, you didn't delete enough.
+After Step 4, run these five steps, in order:
+1. **Question the requirement.** Every requirement is wrong by default until proven
+   otherwise. Trace it to a person and a reason, not a department or habit.
+2. **Delete.** Remove the part, step, or feature entirely. If you aren't later adding
+   back at least some of what you delete, you didn't delete enough.
 3. **Simplify / optimize** — but only *after* deleting. Never optimize a thing that
    shouldn't exist.
-4. **Accelerate cycle time.** Speed up — but only after the first three steps.
+4. **Accelerate cycle time.** Speed it up — but only after the first three steps.
 5. **Automate** — last, never first.
 
 ## Output format
