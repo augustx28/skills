@@ -1,16 +1,18 @@
 ---
 name: price-action-trading
-description: Analyze a forex chart and produce a disciplined price-action trade plan for the New York session (8:00 AM – 12:00 PM EST). Use whenever the user asks for a trade idea, setup, entry/stop/target, or "should I buy/sell" on a forex pair using pure price action — raw candles, market structure, support/resistance, liquidity, rejections, fakeouts, and clean traffic. No indicators. Outputs a structured Trade Plan (direction, entry, stop, targets, R:R, confidence, star rating) or "No valid setup right now" with levels to monitor.
+description: Analyze a forex chart and produce a disciplined price-action trade plan for any trading session (Sydney, Tokyo/Asian, London, New York, or an overlap). Use whenever the user asks for a trade idea, setup, entry/stop/target, or "should I buy/sell" on a forex pair using pure price action — raw candles, market structure, support/resistance, liquidity, rejections, fakeouts, and clean traffic. No indicators. Trade only when the active session brings volume and favors the pair. Outputs a structured Trade Plan (direction, entry, stop, targets, R:R, confidence, star rating) or "No valid setup right now" with levels to monitor.
 ---
 
 # Price Action Trading Plan
 
 ## What this is
 
-A strict, top-down method for trading forex with pure price action during the
-New York session (8:00 AM – 12:00 PM EST). No indicators. No exceptions. Decisions
-come from raw candles, market structure, support/resistance zones, liquidity,
-rejections, fakeouts, and clean traffic to the left.
+A strict, top-down method for trading forex with pure price action in **any
+session** — Sydney, Tokyo/Asian, London, New York, or an overlap. No indicators.
+No exceptions. Decisions come from raw candles, market structure,
+support/resistance zones, liquidity, rejections, fakeouts, and clean traffic to
+the left. The session only decides *when there's enough volume to trade* and
+*which pairs are in play* — the analysis itself is the same in every session.
 
 Work through the phases **in order**. Do not skip ahead. Do not propose a trade
 until confluence is confirmed (Step 8) and a candle has closed in your direction
@@ -32,17 +34,28 @@ valid and frequent answer.
 
 ---
 
-## Phase 1: Pre-Session Prep (before 8:00 AM)
+## Phase 1: Pre-Session Prep (before the session opens)
 
-1. **Lock the session.** 8:00 AM – 12:00 PM EST = New York session. Confirm volume:
-   NY Open and the London/NY overlap bring the most volume; bigger candles = better
-   execution. After 11 AM volume drops — switch to 4H only if no volume is present.
-2. **Check news.** Scan Forex Factory for high-impact news (NFP, FOMC, rates, speeches).
-   If news hits within 15–30 minutes, stay off the charts — volatility spikes and
-   candles break highs/lows haphazardly. Unplanned breaking news also spikes volume.
-3. **Select the pair.** NY session favors USD pairs. Check correlation (e.g. GBP/USD
-   can consolidate in NY when both currencies are active). Skip pairs with a wide
-   spread. Only trade pairs you've backtested in the NY session. Know the
+1. **Lock the session and confirm volume.** Decide which session you're trading and
+   trade its active window. Approximate times (EST):
+   - **Sydney:** 5:00 PM – 2:00 AM — favors AUD, NZD pairs.
+   - **Tokyo / Asian:** 7:00 PM – 4:00 AM — favors JPY, AUD, NZD pairs.
+   - **London:** 3:00 AM – 12:00 PM — favors GBP, EUR pairs.
+   - **New York:** 8:00 AM – 5:00 PM — favors USD, CAD pairs.
+   - **Overlaps (highest volume):** London/NY 8:00 AM – 12:00 PM; Tokyo/London ~3:00–4:00 AM.
+
+   You need volume: bigger candles = better execution. The session opens and overlaps
+   bring it. If you're trading a session's quiet tail (e.g. late in any session, or
+   the Asian session on non-JPY pairs), volume drops — switch to a higher timeframe
+   (4H) only if no volume is present, or stand aside.
+2. **Check news.** Scan Forex Factory for high-impact news (NFP, FOMC, rates, speeches)
+   for the currencies you're trading, in their local session. If news hits within
+   15–30 minutes, stay off the charts — volatility spikes and candles break highs/lows
+   haphazardly. Unplanned breaking news also spikes volume.
+3. **Select the pair for the session.** Trade pairs whose currencies are active in the
+   session you chose (see Step 1). Check correlation — a pair can consolidate when both
+   its currencies are active (e.g. GBP/USD in the London/NY overlap). Skip pairs with a
+   wide spread. Only trade pairs you've backtested **in that session**. Know the
    fundamentals (oil for USD/CAD, etc.).
 
 ## Phase 2: Risk Setup (before any chart analysis)
@@ -72,7 +85,7 @@ valid and frequent answer.
    1. HTF zone (4H/Daily S/R)
    2. Clean range (20+ pips to the next zone)
    3. LTF candle confirmation (30M/1H close in your direction)
-   4. Volume (NY Open or London/NY overlap)
+   4. Volume (the active session's open or an overlap — see Step 1)
 
    **No confluence = no trade.**
 
