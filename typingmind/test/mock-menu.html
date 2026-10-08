@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock Plugin Menu</title>
+<style>
+  body { margin: 0; padding: 120px 16px 16px; font: 14px/1.4 system-ui, sans-serif; background: #1f2937; color: #e5e7eb; }
+  [role="menu"] { width: 320px; margin-top: 8px; background: #111827; border-radius: 8px; padding: 4px; }
+  .section-header { display: block; width: 100%; text-align: left; background: none; border: 0; color: #9ca3af; padding: 6px 8px; font: inherit; cursor: pointer; }
+  [role="menuitem"] { padding: 0 8px; border-radius: 6px; cursor: pointer; }
+  .row-inner { display: flex; align-items: center; justify-content: space-between; height: 34px; }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .justify-center { justify-content: center; }
+  .gap-2 { gap: 8px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  [role="switch"] { width: 34px; height: 18px; border-radius: 9px; border: 0; background: #4b5563; flex: 0 0 auto; }
+  [role="switch"][aria-checked="true"] { background: #3b82f6; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* A stand-in for TypingMind's plugin menu, shaped like the DOM the sorter's
+ * selectors expect: a HeadlessUI menu holding disclosure sections, each with
+ * menuitem rows that carry a switch. It re-renders the way React would:
+ * opening a section mounts fresh rows in TypingMind's own order, and a plugin
+ * that is switched on also shows in an "Enabled" section at the top.
+ *   ?mode=move          enabled plugins leave their section instead of being copied
+ *   ?enabled=plain      the Enabled section is a plain label, not a collapsible header
+ *   ?sorter=a.js,b.js   scripts to load, in order, once the menu is up
+ */
+(() => {
+    const NATIVE = {
+        'Built-in': ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo'],
+        'Skills':   ['Kilo', 'Lima', 'Mike']
+    };
+    const q = new URLSearchParams(location.search);
+    const move = q.get('mode') === 'move';
+    const plainEnabled = q.get('enabled') === 'plain';
+
+    // TypingMind remembers which plugins are on. Its Enabled section lists
+    // them in the order they were switched on.
+    let enabled = [];
+    try { enabled = JSON.parse(localStorage.getItem('mock_on') || '[]'); } catch (_) {}
+    const isOn = (n) => enabled.includes(n);
+    const persist = () => localStorage.setItem('mock_on', JSON.stringify(enabled));
+
+    const open = {};                                // disclosure state, not persisted
+    const isOpen = (t) => open[t] !== false;        // every section starts open
+
+    let uid = 0;
+    const hid = (kind) => 'headlessui-' + kind + '-' + (++uid);
+
+    const shown = (title) => title === 'Enabled'
+        ? enabled.slice()
+        : NATIVE[title].filter(n => !(move && isOn(n)));
+
+    function makeRow(name) {
+        const r = document.createElement('div');
+        r.setAttribute('role', 'menuitem');
+        r.tabIndex = -1;
+        r.dataset.name = name;
+        r.innerHTML = '<div class="row-inner"><div class="flex items-center justify-center gap-2 truncate">' +
+            '<span class="truncate"></span></div><button type="button" role="switch"></button></div>';
+        r.querySelector('span.truncate').textContent = name;
+        r.querySelector('[role="switch"]').setAttribute('aria-checked', String(isOn(name)));
+        r.addEventListener('click', () => toggle(name));   // a tap anywhere on the row flips it
+        return r;
+    }
+
+    const sections = {};                            // title -> section controller
+
+    function makeSection(title) {
+        const el = document.createElement('div');
+        el.dataset.section = title;
+        const header = document.createElement('button');
+        header.type = 'button';
+        header.id = hid('disclosure-button');
+        header.className = 'section-header';
+        el.appendChild(header);
+
+        let panel = null;
+        const s = {
+            el,
+            list: () => panel && panel.firstElementChild,
+            paint() {
+                header.textContent = title + ' (' + shown(title).length + ')';
+                header.setAttribute('aria-expanded', String(isOpen(title)));
+            },
+            mount() {
+                if (panel) { panel.remove(); panel = null; header.removeAttribute('aria-controls'); }
+                if (!isOpen(title)) return;
+                panel = document.createElement('div');
+                panel.id = hid('disclosure-panel');
+                const list = document.createElement('div');
+                shown(title).forEach(n => list.appendChild(makeRow(n)));
+                panel.appendChild(list);
+                el.appendChild(panel);
+                header.setAttribute('aria-controls', panel.id);
+            }
+        };
+        header.addEventListener('click', () => {
+            open[title] = !isOpen(title);
+            s.paint();
+            s.mount();
+        });
+        s.paint();
+        s.mount();
+        sections[title] = s;
+        return s;
+    }
+
+    // A titled group that can't collapse: no button, no aria-expanded.
+    function makePlainSection(title) {
+        const el = document.createElement('div');
+        el.dataset.section = title;
+        const label = document.createElement('div');
+        label.className = 'section-header';
+        const list = document.createElement('div');
+        el.append(label, list);
+        const s = {
+            el,
+            list: () => list,
+            paint() { label.textContent = title + ' (' + shown(title).length + ')'; },
+            mount() { list.replaceChildren(...shown(title).map(makeRow)); }
+        };
+        s.paint();
+        s.mount();
+        sections[title] = s;
+        return s;
+    }
+
+    const wrap = document.createElement('div');
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.id = hid('menu-button');
+    trigger.setAttribute('aria-haspopup', 'menu');
+    trigger.textContent = 'Plugins';
+    wrap.appendChild(trigger);
+    document.getElementById('app').appendChild(wrap);
+
+    let menu = null, body = null;
+
+    function syncEnabledSection() {
+        const s = sections['Enabled'];
+        if (!enabled.length) {
+            if (s) { s.el.remove(); delete sections['Enabled']; }
+            return;
+        }
+        if (!s) body.prepend((plainEnabled ? makePlainSection : makeSection)('Enabled').el);
+        else s.paint();
+    }
+
+    function openMenu() {
+        menu = document.createElement('div');
+        menu.setAttribute('role', 'menu');
+        menu.id = hid('menu-items');
+        body = document.createElement('div');
+        menu.appendChild(body);
+        Object.keys(sections).forEach(k => delete sections[k]);
+        Object.keys(NATIVE).forEach(t => body.appendChild(makeSection(t).el));
+        syncEnabledSection();
+        wrap.appendChild(menu);
+        trigger.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeMenu() {
+        menu.remove();
+        menu = body = null;
+        trigger.setAttribute('aria-expanded', 'false');
+    }
+
+    trigger.addEventListener('click', () => (menu ? closeMenu() : openMenu()));
+
+    // like HeadlessUI, a press anywhere outside the menu closes it
+    document.addEventListener('pointerdown', (e) => {
+        if (menu && !menu.contains(e.target) && !trigger.contains(e.target)) closeMenu();
+    });
+
+    // React-style update: patch the switches in place, add or drop only the
+    // row that changed, and leave every other node where it is
+    function toggle(name) {
+        const turningOn = !isOn(name);
+        if (turningOn) enabled.push(name);
+        else enabled.splice(enabled.indexOf(name), 1);
+        persist();
+        if (!menu) return;
+
+        document.querySelectorAll('[role="menuitem"]').forEach(r => {
+            if (r.dataset.name === name) {
+                r.querySelector('[role="switch"]').setAttribute('aria-checked', String(turningOn));
+            }
+        });
+
+        const hadEnabled = !!sections['Enabled'];
+        syncEnabledSection();
+        const en = sections['Enabled'];
+        if (en && hadEnabled && en.list()) {
+            if (turningOn) en.list().appendChild(makeRow(name));
+            else {
+                const gone = en.list().querySelector(':scope > [data-name="' + name + '"]');
+                if (gone) gone.remove();
+            }
+        }
+
+        if (move) {
+            const title = Object.keys(NATIVE).find(t => NATIVE[t].includes(name));
+            const s = sections[title];
+            s.paint();
+            const list = s.list();
+            if (!list) return;
+            if (turningOn) {
+                const gone = list.querySelector(':scope > [data-name="' + name + '"]');
+                if (gone) gone.remove();
+            } else {
+                // React inserts before the next sibling in its own order,
+                // wherever that node happens to sit in the DOM right now
+                const later = NATIVE[title].slice(NATIVE[title].indexOf(name) + 1);
+                const next = later
+                    .map(n => list.querySelector(':scope > [data-name="' + n + '"]'))
+                    .find(Boolean);
+                list.insertBefore(makeRow(name), next || null);
+            }
+        }
+    }
+
+    openMenu();
+})();
+</script>
+<script>
+// Load the sorter build(s) named in ?sorter=, in order, once the menu is up.
+(async () => {
+    const srcs = (new URLSearchParams(location.search).get('sorter') || '').split(',').filter(Boolean);
+    for (const src of srcs) {
+        await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = resolve;
+            s.onerror = () => reject(new Error('failed to load ' + src));
+            document.head.appendChild(s);
+        });
+    }
+    window.__sorterLoaded = true;
+})();
+</script>
+</body>
+</html>

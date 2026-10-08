@@ -1,12 +1,24 @@
 /* ============================================================================
- * TypingMind - Plugin Sorter  (V13)
+ * TypingMind - Plugin Sorter  (V14)
  * ----------------------------------------------------------------------------
  * Drag to reorder plugins in the plugin menu. Built touch-first.
  *
- * WHAT V13 CHANGES
- *  Only the section open/closed memory. Sorting, pinning and drag code are
- *  untouched from V11/V12.
+ * WHAT V14 CHANGES
+ *  1. No more auto-ranking. TypingMind now lists switched-on plugins and
+ *     skills in a section of its own, so switching one on or off no longer
+ *     moves it. Your drag order is the only order, and a plugin you drag
+ *     while it's switched on stays where you drop it.
+ *  2. Fixed: two drops less than half a second apart stranded a click blocker
+ *     on the page, and nothing could be clicked until a reload.
+ *  3. If an older copy (V13) is still installed, V14 stops it instead of
+ *     fighting it over the same lists.
+ *  4. Section memory never touches the plugin menu's own button. If the new
+ *     Enabled section has no collapsible header, V13 could mistake that
+ *     button for a section header and open or shut the menu by itself.
+ *  Your saved drag order carries over. Drag, touch and the rest of the
+ *  section memory are unchanged from V13.
  *
+ * SECTION OPEN/CLOSED MEMORY (from V13, unchanged)
  *  V12 corrected sections too late and you saw them flash open first:
  *    120ms debounce -> 60ms stagger per section -> HeadlessUI collapse
  *    animation. Half a second of visible wrongness.
@@ -27,16 +39,14 @@
  *  IF IT STILL FLASHES, turn the whole thing off and get native behaviour:
  *      tmSorter.sections(false)     // persists, takes effect immediately
  *      tmSorter.sections(true)      // back on
- *  Or set CFG.rememberSections to false below. Sorting and pinning keep
- *  working either way.
+ *  Or set CFG.rememberSections to false below. Sorting keeps working either
+ *  way.
  *
- * THE SORTING BEHAVIOUR (unchanged)
- *  No injected UI. Switch a plugin ON, it ranks to the top. Switch it OFF, it
- *  drops back into the slot it held before. Two saved lists per group:
- *    order -> your manual drag order, never touched by switching on or off
- *    pins  -> the order of the plugins currently switched on
- *  Resting positions are seeded on first sight of a list, before anything
- *  floats, so nothing gets stranded.
+ * THE SORTING BEHAVIOUR
+ *  No injected UI beyond the drag handles. One saved order per section, and
+ *  only your drags edit it. Every plugin gets a slot the first time it's
+ *  seen, next to the row it rendered beside, so a plugin that leaves a list
+ *  and comes back lands in its own slot instead of at the bottom.
  *
  * WHY V9 IS DEAD (kept as a warning)
  *  V9 watched attribute mutations on the list, and its pill wrote an attribute
@@ -45,14 +55,15 @@
  *  observe childList only and carry rate guards that back off instead of
  *  spinning.
  *
- * Console: tmSorter.dump() / .apply() / .float(true|false) / .sections(bool)
- *          .headers() / .states() / .debug() / .off() / .reset()
+ * Console: tmSorter.dump() / .apply() / .sections(bool) / .headers()
+ *          .states() / .debug() / .off() / .reset()
  * ========================================================================== */
 (() => {
     'use strict';
 
-    if (window.__tmSorterV13) return;
-    window.__tmSorterV13 = true;
+    if (window.__tmSorterV14) return;
+    window.__tmSorterV14 = true;
+    window.__tmSorterV13 = true;   // a V13 copy that loads after this one bails out
 
     const CFG = {
         keyOrder:    'tm_plugin_sort_v9',           // your order lives here
@@ -70,13 +81,12 @@
         sweepMs:     2000,  // sorter watchdog re-scan
         stateMs:     1500,  // section-state heartbeat
         settleMs:    90,    // debounce after TypingMind mutates a list
-        flipMs:      170,   // debounce after a plugin switch is tapped
+        dropMs:      170,   // re-check the order this long after a drop
         clickShield: 450,   // how long to swallow the post-drop click
         maxSpeed:    14,    // autoscroll px/frame at the edge
         burstMax:    120,   // observer callbacks per second before backing off
         fastMax:     30,    // pre-paint restores per second before backing off
         hideMs:      350,   // hard ceiling on the anti-flash hide
-        newestOnTop: false, // true = last plugin switched on sits above the rest
         rememberSections: true
     };
 
@@ -105,21 +115,12 @@
                 const v8 = Store.read(CFG.keyV8, null);
                 const v5 = Store.read(CFG.keyLegacy, null);
                 data = {
-                    groups:  (v8 && v8.groups) || {},
-                    legacy:  (v8 && v8.legacy) || (v5 && v5.order) || [],
-                    pins:    {},
-                    floatOn: true
+                    groups: (v8 && v8.groups) || {},
+                    legacy: (v8 && v8.legacy) || (v5 && v5.order) || []
                 };
                 Store.write(CFG.keyOrder, data);
             }
             this.data = data;
-            const d = this.fresh();
-
-            if (!d.pinBoot) {          // pinning defaults on, once
-                d.pinBoot = true;
-                d.floatOn = true;
-                Store.write(CFG.keyOrder, d);
-            }
         }
 
         // always re-read so a second tab can't clobber us
@@ -127,8 +128,6 @@
             const d = Store.read(CFG.keyOrder, this.data) || this.data;
             d.groups = d.groups || {};
             d.legacy = d.legacy || [];
-            d.pins   = d.pins   || {};
-            if (typeof d.floatOn !== 'boolean') d.floatOn = true;
             this.data = d;
             return d;
         }
@@ -145,23 +144,8 @@
             Store.write(CFG.keyOrder, d);
         }
 
-        pins(key) { return this.fresh().pins[key] || []; }
-        setPins(key, names) {
-            const d = this.fresh();
-            d.pins[key] = names;
-            Store.write(CFG.keyOrder, d);
-        }
-
-        float()      { return this.fresh().floatOn; }
-        setFloat(on) {
-            const d = this.fresh();
-            d.floatOn = !!on;
-            d.pinBoot = true;
-            Store.write(CFG.keyOrder, d);
-        }
-
         wipe() {
-            this.data = { groups: {}, legacy: [], pins: {}, floatOn: true, pinBoot: true };
+            this.data = { groups: {}, legacy: [] };
             Store.write(CFG.keyOrder, this.data);
         }
     }
@@ -192,27 +176,6 @@
         );
     }
 
-    // Is this plugin switched on? Read-only, called on demand. Never writes.
-    function isOn(row) {
-        const sw = row.querySelector(CFG.sel.switch);
-        if (!sw) return false;
-
-        const ac = sw.getAttribute('aria-checked');
-        if (ac === 'true')  return true;
-        if (ac === 'false') return false;
-
-        const box = sw.matches('input[type="checkbox"]')
-            ? sw : sw.querySelector('input[type="checkbox"]');
-        if (box) return !!box.checked;
-
-        const flag = (sw.getAttribute('data-state') ||
-                      sw.getAttribute('data-headlessui-state') || '').toLowerCase();
-        if (/checked|\bon\b|active|selected/.test(flag)) return true;
-        if (/unchecked|\boff\b/.test(flag))              return false;
-
-        return /bg-(blue|indigo|sky|violet|green|emerald|teal)/.test(sw.getAttribute('class') || '');
-    }
-
     /* ------------------------------------------------- section header finding */
 
     function isExpander(el) {
@@ -222,6 +185,16 @@
         if (role === 'switch' || role === 'combobox' || role === 'textbox') return false;
         if (el.closest(CFG.sel.row)) return false;
         return true;
+    }
+
+    // A button that opens a popup, like the plugin menu's own button, is never
+    // a section. It can sit right above a list that has no header of its own
+    // (TypingMind's Enabled section, if it has none), and remembering it like
+    // a section makes the menu open or shut by itself. Section memory skips
+    // these. Group keys still use isExpander, so no saved order moves.
+    function isSection(el) {
+        return isExpander(el) && !el.hasAttribute('aria-haspopup') &&
+            !/^headlessui-(menu|popover|listbox|combobox)-button/.test(el.id || '');
     }
 
     function expanderFor(list) {
@@ -268,12 +241,12 @@
         });
         lists.forEach(l => {
             const h = expanderFor(l);
-            if (!h) return;
+            if (!isSection(h)) return;
             found.add(h);
             siblingExpanders(h).forEach(s => found.add(s));
         });
 
-        return Array.from(found);
+        return Array.from(found).filter(isSection);
     }
 
     // Stable-ish name for a section. Falls back through aria-label, title, then
@@ -333,8 +306,8 @@
     }
 
     // Reorder only the names in `subsetInNewOrder`; every other stored name keeps
-    // its slot. Used for search-filtered lists, and to update the resting order
-    // from the switched-off rows alone without disturbing pinned rows.
+    // its slot. That way a plugin hidden by search, or moved out of the list by
+    // TypingMind, still has its place when it comes back.
     function mergeOrder(saved, subsetInNewOrder) {
         const moving = new Set(subsetInNewOrder);
         const out = [];
@@ -352,14 +325,17 @@
 
     /* --------------------------------------------------------- click shield */
 
+    // One shared listener. Adding the same function twice is a no-op, so a
+    // second drop inside the window can't strand a copy that eats every click
+    // (V13 made a fresh one per drop and lost track of the first).
+    const eatClick = (e) => { e.stopPropagation(); e.preventDefault(); };
+    const SHIELDED = ['click', 'auxclick', 'contextmenu'];
     let shieldTimer = null;
     function shieldClicks() {
-        const kill = (e) => { e.stopPropagation(); e.preventDefault(); };
-        const types = ['click', 'auxclick', 'contextmenu'];
-        types.forEach(t => document.addEventListener(t, kill, true));
+        SHIELDED.forEach(t => document.addEventListener(t, eatClick, true));
         clearTimeout(shieldTimer);
         shieldTimer = setTimeout(() => {
-            types.forEach(t => document.removeEventListener(t, kill, true));
+            SHIELDED.forEach(t => document.removeEventListener(t, eatClick, true));
         }, CFG.clickShield);
     }
 
@@ -392,9 +368,9 @@
 
         /* --- styles --- */
         injectCSS() {
-            if (document.getElementById('tm-sorter-v13-css')) return;
+            if (document.getElementById('tm-sorter-v14-css')) return;
             const s = document.createElement('style');
-            s.id = 'tm-sorter-v13-css';
+            s.id = 'tm-sorter-v14-css';
             s.textContent = `
 /* keep the plugin label hard-left so the handle has room */
 [role="menuitem"] .flex.items-center.justify-center.gap-2.truncate{
@@ -511,7 +487,7 @@ html.tm-drag-on .tm-handle{cursor:grabbing;}
                 if (r.querySelector(CFG.sel.switch) && r.parentElement) lists.add(r.parentElement);
             });
             lists.forEach(l => {
-                if (l.dataset.tmSort === '13') {
+                if (l.dataset.tmSort === '14') {
                     this.addHandles(l);
                     this.queueApply(l);
                 } else {
@@ -555,9 +531,9 @@ html.tm-drag-on .tm-handle{cursor:grabbing;}
         }
 
         initList(list) {
-            list.dataset.tmSort = '13';
+            list.dataset.tmSort = '14';
             this.addHandles(list);
-            this.seedResting(list);   // record true positions BEFORE anything floats
+            this.seedOrder(list);     // give every row a slot before anything moves
             this.applyOrder(list);
 
             // childList only. Identical to V8. No attributes, no subtree.
@@ -570,25 +546,6 @@ html.tm-drag-on .tm-handle{cursor:grabbing;}
             });
             ob.observe(list, { childList: true });
             this.observers.push(ob);
-
-            // A tap or keypress on a row is what flips a plugin, so that is the
-            // re-rank trigger. Capture phase so we still see it if TypingMind
-            // stops propagation.
-            const poke = (e) => {
-                if (this.drag || this.dead) return;
-                if (!this.book.float()) return;
-                const t = e.target;
-                if (!t || !t.closest || !t.closest(CFG.sel.row)) return;
-                if (t.closest('.tm-handle')) return;
-                setTimeout(() => {
-                    if (this.dead) return;
-                    this.applyOrder(list, true);
-                }, CFG.flipMs);
-            };
-            list.addEventListener('click', poke, true);
-            list.addEventListener('keyup', (e) => {
-                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') poke(e);
-            }, true);
         }
 
         queueApply(list, delay) {
@@ -614,132 +571,80 @@ html.tm-drag-on .tm-handle{cursor:grabbing;}
             });
         }
 
-        /* --- resting positions ------------------------------------------- */
+        /* --- slots in the saved order ------------------------------------- */
 
-        // Every visible row must own a slot in the resting order, otherwise a
-        // plugin that gets switched off has nowhere to fall back to and ends up
-        // stranded. New names are slotted next to the switched-off row they
-        // rendered beside, never dumped at the end.
-        seedResting(list) {
+        // Every visible row must own a slot in the saved order, otherwise a
+        // plugin that leaves the list and comes back has nowhere to land. New
+        // names are slotted next to the row they rendered beside, never dumped
+        // at the end.
+        seedOrder(list) {
             const key   = listKey(list);
             const saved = this.book.get(key).slice();
             const have  = new Set(saved);
 
-            const rows = rowsOf(list)
-                .map(r => ({ name: rowName(r), on: isOn(r) }))
-                .filter(x => x.name);
-            if (!rows.length) return false;
-            if (!rows.some(x => !have.has(x.name))) return false;
+            const names = rowsOf(list).map(rowName).filter(Boolean);
+            if (!names.length) return false;
+            if (!names.some(n => !have.has(n))) return false;
 
-            rows.forEach((row, i) => {
-                if (have.has(row.name)) return;
+            names.forEach((name, i) => {
+                if (have.has(name)) return;
 
                 let at = -1;
-                for (let j = i + 1; j < rows.length; j++) {           // nearest known off row below
-                    if (!rows[j].on && have.has(rows[j].name)) { at = saved.indexOf(rows[j].name); break; }
+                for (let j = i + 1; j < names.length; j++) {           // nearest known row below
+                    if (have.has(names[j])) { at = saved.indexOf(names[j]); break; }
                 }
                 if (at < 0) {
-                    for (let j = i - 1; j >= 0; j--) {                // else nearest known off row above
-                        if (!rows[j].on && have.has(rows[j].name)) { at = saved.indexOf(rows[j].name) + 1; break; }
+                    for (let j = i - 1; j >= 0; j--) {                 // else nearest known row above
+                        if (have.has(names[j])) { at = saved.indexOf(names[j]) + 1; break; }
                     }
                 }
                 if (at < 0) at = saved.length;
 
-                saved.splice(at, 0, row.name);
-                have.add(row.name);
+                saved.splice(at, 0, name);
+                have.add(name);
             });
 
             this.book.set(key, saved);
             return true;
         }
 
-        // Adds names that just switched on, drops names that switched off. Only
-        // looks at visible rows, so a plugin hidden by search keeps its slot.
-        syncPins(list) {
-            const key  = listKey(list);
-            const rows = rowsOf(list);
-            if (!rows.length) return false;
-
-            const seen = rows.map(r => ({ name: rowName(r), on: isOn(r) })).filter(x => x.name);
-            const pins = this.book.pins(key).slice();
-            let changed = false;
-
-            const offNow = new Set(seen.filter(x => !x.on).map(x => x.name));
-            for (let i = pins.length - 1; i >= 0; i--) {
-                if (offNow.has(pins[i])) { pins.splice(i, 1); changed = true; }
-            }
-
-            const have = new Set(pins);
-            const adds = seen.filter(x => x.on && !have.has(x.name)).map(x => x.name);
-            if (adds.length) {
-                const saved = this.book.get(key);
-                const idx = new Map(saved.map((n, i) => [n, i]));
-                const at = (n) => idx.has(n) ? idx.get(n) : 1e6;
-                adds.sort((a, b) => at(a) - at(b));
-                if (CFG.newestOnTop) pins.unshift(...adds); else pins.push(...adds);
-                changed = true;
-            }
-
-            if (changed) this.book.setPins(key, pins);
-            return changed;
-        }
-
         /* --- persistence --- */
 
-        applyOrder(list, user) {
+        applyOrder(list) {
             if (this.drag || this.dead || !list.isConnected) return;
 
-            // runaway guard: if React keeps re-rendering and fighting us, pause.
-            // A tap on a plugin row is intent, so it skips the guard.
+            // runaway guard: if React keeps re-rendering and fighting us, pause
             const now = Date.now();
             const t = this.throttle.get(list) || { n: 0, at: now, until: 0 };
-            if (!user) {
-                if (now < t.until) return;
-                if (now - t.at > 3000) { t.n = 0; t.at = now; }
-            }
+            if (now < t.until) return;
+            if (now - t.at > 3000) { t.n = 0; t.at = now; }
 
             const rows = rowsOf(list);
             if (rows.length < 2) return;
 
-            const floatOn = this.book.float();
-            this.seedResting(list);
-            if (floatOn) this.syncPins(list);
+            this.seedOrder(list);
 
-            const key   = listKey(list);
-            const saved = this.book.get(key);
-            if (!saved.length && !floatOn) return;
+            const saved = this.book.get(listKey(list));
+            if (!saved.length) return;
 
-            const idx  = new Map(saved.map((n, i) => [n, i]));
-            const pins = floatOn ? this.book.pins(key) : [];
-            const pin  = new Map(pins.map((n, i) => [n, i]));
-            const FAR  = 1e6;
+            const idx = new Map(saved.map((n, i) => [n, i]));
+            const FAR = 1e6;
 
             const meta = rows.map((r, i) => {
                 const name = rowName(r);
-                return {
-                    r,
-                    on: floatOn ? isOn(r) : false,
-                    p:  (name && pin.has(name)) ? pin.get(name) : FAR,
-                    b:  (name && idx.has(name)) ? idx.get(name) : FAR + i
-                };
+                return { r, b: (name && idx.has(name)) ? idx.get(name) : FAR + i };
             });
 
-            const want = meta.slice().sort((a, b) => {
-                if (a.on !== b.on) return a.on ? -1 : 1;    // switched-on rows rank up
-                if (a.on && a.p !== b.p) return a.p - b.p;  // pinned order
-                return a.b - b.b;                            // your drag order
-            }).map(m => m.r);
+            const want = meta.slice().sort((a, b) => a.b - b.b).map(m => m.r);   // your drag order
 
             let same = true;
             for (let i = 0; i < rows.length; i++) if (rows[i] !== want[i]) { same = false; break; }
             if (same) return;
 
-            if (!user) {
-                t.n++;
-                if (t.n > 10) { t.until = now + 5000; t.n = 0; t.at = now; }
-                this.throttle.set(list, t);
-                if (t.until > now) return;
-            }
+            t.n++;
+            if (t.n > 10) { t.until = now + 5000; t.n = 0; t.at = now; }
+            this.throttle.set(list, t);
+            if (t.until > now) return;
 
             const tail = rows[rows.length - 1].nextSibling;  // keep trailing UI in place
             const focused = document.activeElement;
@@ -756,39 +661,14 @@ html.tm-drag-on .tm-handle{cursor:grabbing;}
             queueMicrotask(() => this.applying.delete(list));
         }
 
-        // draggedName decides whether the drop edits the resting order or only
-        // the pinned cluster at the top.
-        saveOrder(list, draggedName) {
-            const rows  = rowsOf(list);
-            const names = rows.map(rowName).filter(Boolean);
+        // The visible rows, in the order you just left them. Anything not on
+        // screen keeps its slot.
+        saveOrder(list) {
+            const names = rowsOf(list).map(rowName).filter(Boolean);
             if (!names.length) return;
 
             const key = listKey(list);
-
-            if (!this.book.float()) {
-                this.book.set(key, mergeOrder(this.book.get(key), names));
-                return;
-            }
-
-            const onSet = new Set();
-            rows.forEach(r => {
-                if (!isOn(r)) return;
-                const n = rowName(r);
-                if (n) onSet.add(n);
-            });
-
-            if (draggedName && onSet.has(draggedName)) {
-                // dragged a switched-on row: reorder the pinned cluster only, so
-                // its resting slot survives being switched off later
-                this.syncPins(list);
-                const pinned = names.filter(n => onSet.has(n));
-                if (pinned.length) this.book.setPins(key, mergeOrder(this.book.pins(key), pinned));
-            } else {
-                // dragged a switched-off row: a real resting-order edit. Pinned
-                // rows count as hidden here, so they keep their slots.
-                const resting = names.filter(n => !onSet.has(n));
-                if (resting.length) this.book.set(key, mergeOrder(this.book.get(key), resting));
-            }
+            this.book.set(key, mergeOrder(this.book.get(key), names));
         }
 
         /* --- drag: press --- */
@@ -995,8 +875,8 @@ html.tm-drag-on .tm-handle{cursor:grabbing;}
             shieldClicks();
 
             if (!aborted && list.isConnected) {
-                this.saveOrder(list, rowName(row));
-                this.queueApply(list, CFG.flipMs);
+                this.saveOrder(list);
+                this.queueApply(list, CFG.dropMs);
             }
         }
 
@@ -1010,7 +890,7 @@ html.tm-drag-on .tm-handle{cursor:grabbing;}
             document.querySelectorAll('.tm-handle, .tm-ph, .tm-pinbar').forEach(el => el.remove());
             document.querySelectorAll('.tm-prehide').forEach(el => el.classList.remove('tm-prehide'));
             document.querySelectorAll('.tm-nofx').forEach(el => el.classList.remove('tm-nofx'));
-            const css = document.getElementById('tm-sorter-v13-css');
+            const css = document.getElementById('tm-sorter-v14-css');
             if (css) css.remove();
             console.warn('[tm-sorter] stopped. Reload to start it again.');
             return 'stopped';
@@ -1076,7 +956,7 @@ html.tm-drag-on .tm-handle{cursor:grabbing;}
         fast() {
             const map = this.map();
             document.querySelectorAll('[aria-expanded]').forEach(h => {
-                if (!isExpander(h)) return;
+                if (!isSection(h)) return;
                 const key = h.__tmKey || headerKey(h);
                 if (!key || !(key in map)) return;
                 h.__tmKey = key;
@@ -1171,6 +1051,14 @@ html.tm-drag-on .tm-handle{cursor:grabbing;}
 
     /* ------------------------------------------------------------- boot */
 
+    // An older copy that is still running would fight this one over the same
+    // lists, re-ranking plugins this one just put back. Stop it first.
+    const older = window.__tmSorter;
+    if (older && typeof older.kill === 'function' && !older.dead) {
+        try { older.kill(); } catch (_) {}
+        console.warn('[tm-sorter] stopped an older copy. Remove it from your extensions.');
+    }
+
     const sorter = new Sorter();
     window.__tmSorter = sorter;
     const keeper = new StateKeeper(sorter);
@@ -1179,12 +1067,6 @@ html.tm-drag-on .tm-handle{cursor:grabbing;}
         dump:  () => Store.read(CFG.keyOrder, null),
         apply: () => { sorter.scan(); keeper.sweep(); },
         off:   () => sorter.kill(),
-        float: (v) => {
-            if (v === undefined) return sorter.book.float();
-            sorter.book.setFloat(!!v);
-            document.querySelectorAll('[data-tm-sort="13"]').forEach(l => sorter.applyOrder(l, true));
-            return !!v;
-        },
         sections: (v) => {
             if (v === undefined) return sectionsOn();
             Store.write(CFG.keySections, !!v);
@@ -1204,15 +1086,13 @@ html.tm-drag-on .tm-handle{cursor:grabbing;}
             tries: h.__tmTries || 0,
             el:    h
         })),
-        debug: () => Array.from(document.querySelectorAll('[data-tm-sort="13"]')).map(l => ({
-            group: listKey(l),
-            pinning: sorter.book.float(),
-            pinned: sorter.book.pins(listKey(l)),
-            resting: sorter.book.get(listKey(l)),
-            onScreen: rowsOf(l).map(r => (isOn(r) ? 'ON   ' : 'off  ') + rowName(r))
+        debug: () => Array.from(document.querySelectorAll('[data-tm-sort="14"]')).map(l => ({
+            group:    listKey(l),
+            saved:    sorter.book.get(listKey(l)),
+            onScreen: rowsOf(l).map(rowName)
         })),
         reset: () => { sorter.book.wipe(); location.reload(); }
     };
 
-    console.log('[tm-sorter] v13 ready');
+    console.log('[tm-sorter] v14 ready');
 })();
